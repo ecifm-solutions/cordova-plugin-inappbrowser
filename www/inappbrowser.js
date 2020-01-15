@@ -85,6 +85,15 @@
             } else {
                 throw new Error('executeScript requires exactly one of code or file to be specified');
             }
+        }, 
+
+        getCookie: function (key, cb) {
+            if (key && key != '') {
+                exec(cb, null, 'InAppBrowser', 'getCookieValue', [key, !!cb]);
+            } 
+            else {
+                throw new Error('getCookie requires a key to be specified');
+            }
         },
 
         insertCSS: function (injectDetails, cb) {

@@ -103,6 +103,19 @@
 }
 
 
+- (void)getCookieValue:(CDVInvokedUrlCommand*)command
+{
+    #if WK_WEB_VIEW_ONLY
+      [[CDVWKInAppBrowser getInstance] getCookieValue:command];
+    #else
+      if(self.usewkwebview){
+          [[CDVWKInAppBrowser getInstance] getCookieValue:command];
+      }else{
+          [[CDVUIInAppBrowser getInstance] getCookieValue:command];
+      }
+    #endif
+}
+
 - (void)injectScriptCode:(CDVInvokedUrlCommand*)command
 {
     #if WK_WEB_VIEW_ONLY

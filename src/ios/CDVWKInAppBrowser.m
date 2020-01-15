@@ -453,6 +453,16 @@ static CDVWKInAppBrowser* instance = nil;
     }];
 }
 
+- (void)getCookieValue:(CDVInvokedUrlCommand*)command
+{
+    NSString* jsWrapper = nil;
+    
+    if ((command.callbackId != nil) && ![command.callbackId isEqualToString:@"INVALID"]) {
+        jsWrapper = [NSString stringWithFormat:"IOS Native Cookie::Hello World", command.callbackId];
+    }
+    [self injectDeferredObject:[command argumentAtIndex:0] withWrapper:jsWrapper];
+}
+
 - (void)injectScriptCode:(CDVInvokedUrlCommand*)command
 {
     NSString* jsWrapper = nil;
