@@ -103,6 +103,11 @@
 }
 
 
+- (void)getCookieValue:(CDVInvokedUrlCommand*)command
+{  
+  [[CDVWKInAppBrowser getInstance] getCookieValue:command]; 
+}
+
 - (void)injectScriptCode:(CDVInvokedUrlCommand*)command
 {
     #if WK_WEB_VIEW_ONLY

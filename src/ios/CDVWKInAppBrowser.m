@@ -453,6 +453,14 @@ static CDVWKInAppBrowser* instance = nil;
     }];
 }
 
+- (void)getCookieValue:(CDVInvokedUrlCommand*)command
+{
+    NSString* myString = @"NATIVE:COOKIE::HELLO WORLD";
+
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:myString];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (void)injectScriptCode:(CDVInvokedUrlCommand*)command
 {
     NSString* jsWrapper = nil;
