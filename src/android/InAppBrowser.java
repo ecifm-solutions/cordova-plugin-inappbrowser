@@ -84,6 +84,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import java.util.StringTokenizer;
+import java.net.*;
+import java.io.*;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class InAppBrowser extends CordovaPlugin {
@@ -149,6 +151,7 @@ public class InAppBrowser extends CordovaPlugin {
     private String beforeload = "";
     private String[] allowedSchemes;
     private InAppBrowserClient currentClient;
+    public String currentURL = "";
 
     /**
      * Executes the request and returns PluginResult.
@@ -255,6 +258,107 @@ public class InAppBrowser extends CordovaPlugin {
         }
         else if (action.equals("close")) {
             closeDialog();
+        }
+        else if (action.equals("getCookieValue")) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                CookieManager.getInstance().flush();
+            } else {
+                CookieSyncManager.getInstance().sync();
+            }
+
+            final String cookieKey = args.getString(0);
+            Boolean haveResult = false;
+            String cookieString = "";
+            String[] separated = new String[0];
+            URI url = URI.create(currentURL);
+            String domain = url.getHost();
+
+            try{
+                cookieString =  CookieManager.getInstance().getCookie(domain);
+                separated = cookieString.split(";");
+
+            } catch (java.lang.RuntimeException e) {
+                cookieString = "error" + e.getMessage();
+            }
+
+
+            String jsonString = "";
+
+            try{
+                for (String s : separated) {
+                    String[] cookieItem = s.split("=");
+                    if (cookieItem.length > 0) {
+                        if(cookieKey.trim().toLowerCase().equals(cookieItem[0].trim().toLowerCase())){
+                            haveResult = true;
+                            JSONObject jo = new JSONObject();
+                            jo.put("name", cookieItem[0].trim());
+                            jo.put("value", cookieItem[1].trim());
+
+                            jsonString = jo.toString();
+                        }
+                    }
+                }
+            } catch (java.lang.RuntimeException e) {
+                JSONObject jo = new JSONObject();
+                jo.put("error", e.getMessage());
+                jsonString = jo.toString();
+            }
+
+            if(haveResult) {
+                JSONObject obj = new JSONObject(jsonString);
+                PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, obj);
+                pluginResult.setKeepCallback(true);
+                callbackContext.sendPluginResult(pluginResult);
+            }
+            else {
+                JSONObject emptyObj = new JSONObject();
+                emptyObj.put("name", cookieKey);
+                emptyObj.put("value", "");
+
+                PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, emptyObj);
+                pluginResult.setKeepCallback(true);
+                callbackContext.sendPluginResult(pluginResult);
+
+            }
+        }
+        else if (action.equals("getAllCookieValues")) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                CookieManager.getInstance().flush();
+            } else {
+                CookieSyncManager.getInstance().sync();
+            }
+
+            String cookieString = "";
+            String[] separated = new String[0];
+            URI url = URI.create(currentURL);
+            String domain = url.getHost();
+
+            try{
+                cookieString =  CookieManager.getInstance().getCookie(domain);
+                separated = cookieString.split(";");
+
+            } catch (java.lang.RuntimeException e) {
+                /* Do Nothing */
+            }
+
+            JSONObject obj = new JSONObject();
+
+            try{
+                for (String s : separated) {
+                    String[] cookieItem = s.split("=");
+                    if (cookieItem.length > 0) {
+                        obj.put( cookieItem[0].trim(), cookieItem[1].trim());
+                    }
+                }
+            } catch (java.lang.RuntimeException e) {
+                obj.put("error", e.getMessage());
+            }
+
+
+
+            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, obj);
+            pluginResult.setKeepCallback(true);
+            callbackContext.sendPluginResult(pluginResult);
         }
         else if (action.equals("loadAfterBeforeload")) {
             if (beforeload == null) {
@@ -1436,6 +1540,7 @@ public class InAppBrowser extends CordovaPlugin {
                 obj.put("type", LOAD_STOP_EVENT);
                 obj.put("url", url);
 
+                currentURL = view.getUrl();
                 sendUpdate(obj, true);
             } catch (JSONException ex) {
                 LOG.d(LOG_TAG, "Should never happen");
@@ -1450,7 +1555,7 @@ public class InAppBrowser extends CordovaPlugin {
                 obj.put("type", LOAD_ERROR_EVENT);
                 obj.put("url", failingUrl);
                 obj.put("code", errorCode);
-                obj.put("message", description);
+                obj.put("message", description); 
 
                 sendUpdate(obj, true, PluginResult.Status.ERROR);
             } catch (JSONException ex) {
