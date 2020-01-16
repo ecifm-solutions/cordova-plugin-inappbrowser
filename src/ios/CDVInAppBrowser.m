@@ -103,6 +103,11 @@
 }
 
 
+- (void)getAllCookieValues:(CDVInvokedUrlCommand*)command
+{  
+  [[CDVWKInAppBrowser getInstance] getAllCookieValues:command]; 
+}
+
 - (void)getCookieValue:(CDVInvokedUrlCommand*)command
 {  
   [[CDVWKInAppBrowser getInstance] getCookieValue:command]; 

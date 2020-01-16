@@ -76,7 +76,12 @@ interface InAppBrowser extends Window {
      * @param key       The key/name of the cookie you want to get.
      * @param callback  The function that returns after the method is called. 
      */
-    getCookie(key: string, callback: (result: string) => void): void;
+    getCookie(key: string, callback: (result: any) => void): void;
+    /**
+     * Gets a all browsers cookies from the InAppBrowser window. 
+     * @param callback  The function that returns after the method is called. 
+     */
+    getAllCookies(callback: (result: any) => void): void;
     /**
      * Injects CSS into the InAppBrowser window.
      * @param css       Details of the script to run, specifying either a file or code key.

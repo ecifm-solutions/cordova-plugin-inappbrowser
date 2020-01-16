@@ -96,6 +96,10 @@
             }
         },
 
+        getAllCookies: function (cb) { 
+            exec(cb, null, 'InAppBrowser', 'getAllCookieValues', [!!cb]); 
+        },
+        
         insertCSS: function (injectDetails, cb) {
             if (injectDetails.code) {
                 exec(cb, null, 'InAppBrowser', 'injectStyleCode', [injectDetails.code, !!cb]);

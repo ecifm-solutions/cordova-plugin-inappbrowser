@@ -50,6 +50,7 @@
 @implementation CDVWKInAppBrowser
 
 static CDVWKInAppBrowser* instance = nil;
+static NSMutableDictionary* cookieDB = nil;
 
 + (id) getInstance{
     return instance;
@@ -62,6 +63,7 @@ static CDVWKInAppBrowser* instance = nil;
     _callbackIdPattern = nil;
     _beforeload = @"";
     _waitForBeforeload = NO;
+    cookieDB = [[NSMutableDictionary alloc] init];
 }
 
 - (id)settingForKey:(NSString*)key
@@ -453,11 +455,30 @@ static CDVWKInAppBrowser* instance = nil;
     }];
 }
 
-- (void)getCookieValue:(CDVInvokedUrlCommand*)command
-{
-    NSString* myString = @"NATIVE:COOKIE::HELLO WORLD";
+- (void)getAllCookieValues:(CDVInvokedUrlCommand*)command
+{  
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:cookieDB];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:myString];
+- (void)getCookieValue:(CDVInvokedUrlCommand*)command
+{ 
+    NSString *cookieKey = [[command argumentAtIndex:0]lowercaseString];
+    NSArray *sortedKeys = [[cookieDB allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+
+    NSString *cookieName = @"";
+    NSString *cookieValue = @"";
+
+    for (NSString *key in sortedKeys) {
+        if([[key lowercaseString] isEqualToString:cookieKey]){
+            cookieName = key;
+            cookieValue= [cookieDB objectForKey:key];
+            break;
+        }
+     
+    }
+    
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{@"name":cookieName, @"value":cookieValue}];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -648,10 +669,12 @@ static CDVWKInAppBrowser* instance = nil;
 //    self.inAppBrowserViewController.currentURL = theWebView.URL;
 }
 
+//CHRISDEBUG
 - (void)didFinishNavigation:(WKWebView*)theWebView
 {
     if (self.callbackId != nil) {
         NSString* url = [theWebView.URL absoluteString];
+ 
         if(url == nil){
             if(self.inAppBrowserViewController.currentURL != nil){
                 url = [self.inAppBrowserViewController.currentURL absoluteString];
@@ -659,6 +682,15 @@ static CDVWKInAppBrowser* instance = nil;
                 url = @"";
             }
         }
+
+        WKHTTPCookieStore* cookieStore = self.inAppBrowserViewController.webView.configuration.websiteDataStore.httpCookieStore;
+        [cookieStore getAllCookies:^(NSArray* cookies) {
+            NSHTTPCookie* cookie;
+            for(cookie in cookies){
+                [cookieDB setObject: cookie.value  forKey: cookie.name];
+            }
+        }];
+
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
