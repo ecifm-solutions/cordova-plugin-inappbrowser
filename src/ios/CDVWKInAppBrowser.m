@@ -726,7 +726,8 @@ static NSMutableDictionary* cookieDB = nil;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
         self.callbackId = nil;
     }
-    
+     
+    cookieDB.removeAllObjects();
     [self.inAppBrowserViewController.configuration.userContentController removeScriptMessageHandlerForName:IAB_BRIDGE_NAME];
     self.inAppBrowserViewController.configuration = nil;
     
@@ -1121,7 +1122,11 @@ BOOL isExiting = FALSE;
     
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
-        isExiting = TRUE;
+        isExiting = FALSE;
+        if ((self.navigationDelegate != nil) && [self.navigationDelegate respondsToSelector:@selector(browserExit)]) {
+            [self.navigationDelegate browserExit];
+        }
+        
         if ([weakSelf respondsToSelector:@selector(presentingViewController)]) {
             [[weakSelf presentingViewController] dismissViewControllerAnimated:YES completion:nil];
         } else {
@@ -1161,8 +1166,19 @@ BOOL isExiting = FALSE;
     if (IsAtLeastiOSVersion(@"7.0") && !viewRenderedAtLeastOnce) {
         viewRenderedAtLeastOnce = TRUE;
         CGRect viewBounds = [self.webView bounds];
-        viewBounds.origin.y = STATUSBAR_HEIGHT;
-        viewBounds.size.height = viewBounds.size.height - STATUSBAR_HEIGHT;
+
+        bool hasTopNotch = NO;
+        if (@available(iOS 11.0, *)) {
+            hasTopNotch = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.top > 20.0;
+        }
+        if(hasTopNotch){
+            viewBounds.origin.y = [UIApplication sharedApplication].statusBarFrame.size.height;
+            viewBounds.size.height = viewBounds.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
+        } else {
+            viewBounds.origin.y = STATUSBAR_HEIGHT;
+            viewBounds.size.height = viewBounds.size.height - STATUSBAR_HEIGHT;
+        }
+
         self.webView.frame = viewBounds;
         [[UIApplication sharedApplication] setStatusBarStyle:[self preferredStatusBarStyle]];
     }
