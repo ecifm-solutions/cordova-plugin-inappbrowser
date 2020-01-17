@@ -727,7 +727,9 @@ static NSMutableDictionary* cookieDB = nil;
         self.callbackId = nil;
     }
      
-    cookieDB.removeAllObjects();
+    [cookieDB removeAllObjects];
+    cookieDB = [[NSMutableDictionary alloc] init];
+    
     [self.inAppBrowserViewController.configuration.userContentController removeScriptMessageHandlerForName:IAB_BRIDGE_NAME];
     self.inAppBrowserViewController.configuration = nil;
     
@@ -1126,7 +1128,7 @@ BOOL isExiting = FALSE;
         if ((self.navigationDelegate != nil) && [self.navigationDelegate respondsToSelector:@selector(browserExit)]) {
             [self.navigationDelegate browserExit];
         }
-        
+
         if ([weakSelf respondsToSelector:@selector(presentingViewController)]) {
             [[weakSelf presentingViewController] dismissViewControllerAnimated:YES completion:nil];
         } else {
