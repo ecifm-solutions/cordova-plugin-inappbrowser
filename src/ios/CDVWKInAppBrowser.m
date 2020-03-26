@@ -269,6 +269,7 @@ static NSMutableDictionary* cookieDB = nil;
         }
     }
     
+    
     // use of beforeload event
     if([browserOptions.beforeload isKindOfClass:[NSString class]]){
         _beforeload = browserOptions.beforeload;
@@ -683,6 +684,9 @@ static NSMutableDictionary* cookieDB = nil;
             }
         }
 
+        //Clear Cookies From Dictionary
+        [cookieDB removeAllObjects];
+        
         WKHTTPCookieStore* cookieStore = self.inAppBrowserViewController.webView.configuration.websiteDataStore.httpCookieStore;
         [cookieStore getAllCookies:^(NSArray* cookies) {
             NSHTTPCookie* cookie;
