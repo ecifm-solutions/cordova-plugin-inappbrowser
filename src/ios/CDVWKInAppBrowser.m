@@ -459,6 +459,7 @@ static NSMutableDictionary* cookieDB = nil;
 - (void)getAllCookieValues:(CDVInvokedUrlCommand*)command
 {  
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:cookieDB];
+     
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -586,7 +587,6 @@ static NSMutableDictionary* cookieDB = nil;
     }
     
     if(errorMessage != nil){
-        NSLog(errorMessage);
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                                       messageAsDictionary:@{@"type":@"loaderror", @"url":[url absoluteString], @"code": @"-1", @"message": errorMessage}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -601,6 +601,8 @@ static NSMutableDictionary* cookieDB = nil;
     }
     else if ((self.callbackId != nil) && isTopLevelNavigation) {
         // Send a loadstart event for each top-level navigation (includes redirects).
+
+        
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstart", @"url":[url absoluteString]}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -683,18 +685,23 @@ static NSMutableDictionary* cookieDB = nil;
                 url = @"";
             }
         }
-
-        //Clear Cookies From Dictionary
-        [cookieDB removeAllObjects];
         
-        WKHTTPCookieStore* cookieStore = self.inAppBrowserViewController.webView.configuration.websiteDataStore.httpCookieStore;
+        WKWebsiteDataStore* dataStore = [WKWebsiteDataStore defaultDataStore];
+        
+        WKHTTPCookieStore* cookieStore = dataStore.httpCookieStore;
         [cookieStore getAllCookies:^(NSArray* cookies) {
             NSHTTPCookie* cookie;
             for(cookie in cookies){
-                [cookieDB setObject: cookie.value  forKey: cookie.name];
+                //NSLog(@"Cookie Domain: %@, Key: %@, Value: %@ \n", cookie.domain, cookie.name, cookie.value);
+                
+                NSString *cookieString = [NSString stringWithFormat:@"%@", cookie.value];
+                
+                NSString *cookieKey = [NSString stringWithFormat:@"%@::%@", cookie.domain, cookie.name];
+           
+                [cookieDB setObject: cookieString  forKey: cookieKey];
             }
         }];
-
+        
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
