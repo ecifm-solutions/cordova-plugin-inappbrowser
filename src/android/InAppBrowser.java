@@ -288,7 +288,7 @@ public class InAppBrowser extends CordovaPlugin {
                 for (String s : separated) {
                     String[] cookieItem = s.split("=");
                     if (cookieItem.length > 0) {
-                        if(cookieKey.trim().toLowerCase().equals(cookieItem[0].trim().toLowerCase())){
+                        if(cookieKey.trim().toLowerCase().equals(domain + "::" + cookieItem[0].trim().toLowerCase())){
                             haveResult = true;
                             JSONObject jo = new JSONObject();
                             jo.put("name", cookieItem[0].trim());
@@ -347,7 +347,7 @@ public class InAppBrowser extends CordovaPlugin {
                 for (String s : separated) {
                     String[] cookieItem = s.split("=");
                     if (cookieItem.length > 0) {
-                        obj.put( cookieItem[0].trim(), cookieItem[1].trim());
+                        obj.put( domain + "::" + cookieItem[0].trim(), cookieItem[1].trim());
                     }
                 }
             } catch (java.lang.RuntimeException e) {
